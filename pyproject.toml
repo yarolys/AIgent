@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aigent"
+version = "0.1.0"
+description = "Autonomous AI agent for browser automation"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "MIT"}
+authors = [
+    {name = "AIgent Team"}
+]
+
+dependencies = [
+    "playwright>=1.40.0",
+    "anthropic>=0.18.0",
+    "openai>=1.12.0",
+    "pydantic>=2.5.0",
+    "python-dotenv>=1.0.0",
+    "rich>=13.7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "mypy>=1.8.0",
+    "ruff>=0.2.0",
+]
+
+[project.scripts]
+aigent = "src.app.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]
