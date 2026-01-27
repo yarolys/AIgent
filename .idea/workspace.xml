@@ -4,14 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="32b26653-aaa3-4823-92d3-defc816ed89e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/AIgent.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/MypyPlugin.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="32b26653-aaa3-4823-92d3-defc816ed89e" name="Changes" comment="feat(agent): add browser tools, safety checks, and OpenAI provider&#10;&#10;Introduce the plan/act/observe orchestrator with memory, logging, and recovery strategies. Add tool registry plus DOM query, screenshot, and action tools with security policy confirmation. Implement OpenAI provider alongside Anthropic and add text/time utilities and selector generation." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -20,6 +13,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "yarolys"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/yarolys/AIgent.git",
+    "accountId": "40abc72f-39cd-4900-ba32-f74f187b7a60"
+  }
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 0
 }</component>
@@ -60,11 +65,33 @@
       <option name="presentableId" value="Default" />
       <updated>1766152586708</updated>
       <workItem from="1766152587753" duration="2661000" />
-      <workItem from="1769433577390" duration="18851000" />
+      <workItem from="1769433577390" duration="19183000" />
     </task>
+    <task id="LOCAL-00001" summary="chore(idea): align IDE config with local environment&#10;&#10;Exclude .venv from the module content root and switch from inherited JDK to the Python 3.12 (AIgent) SDK. Also update workspace settings (auto-import reload, Git root detection, and IDE properties).">
+      <option name="closed" value="true" />
+      <created>1769527257766</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1769527257766</updated>
+    </task>
+    <task id="LOCAL-00002" summary="feat(agent): add browser tools, safety checks, and OpenAI provider&#10;&#10;Introduce the plan/act/observe orchestrator with memory, logging, and recovery strategies. Add tool registry plus DOM query, screenshot, and action tools with security policy confirmation. Implement OpenAI provider alongside Anthropic and add text/time utilities and selector generation.">
+      <option name="closed" value="true" />
+      <created>1769527526749</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1769527526749</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="chore(idea): align IDE config with local environment&#10;&#10;Exclude .venv from the module content root and switch from inherited JDK to the Python 3.12 (AIgent) SDK. Also update workspace settings (auto-import reload, Git root detection, and IDE properties)." />
+    <MESSAGE value="feat(agent): add browser tools, safety checks, and OpenAI provider&#10;&#10;Introduce the plan/act/observe orchestrator with memory, logging, and recovery strategies. Add tool registry plus DOM query, screenshot, and action tools with security policy confirmation. Implement OpenAI provider alongside Anthropic and add text/time utilities and selector generation." />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(agent): add browser tools, safety checks, and OpenAI provider&#10;&#10;Introduce the plan/act/observe orchestrator with memory, logging, and recovery strategies. Add tool registry plus DOM query, screenshot, and action tools with security policy confirmation. Implement OpenAI provider alongside Anthropic and add text/time utilities and selector generation." />
   </component>
 </project>
