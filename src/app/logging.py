@@ -7,6 +7,8 @@ from typing import Any
 
 from rich.console import Console
 from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
 
 console = Console()
 
@@ -18,6 +20,7 @@ class RunLogger:
         self.run_dir = run_dir
         self.screenshots_dir = run_dir / "screenshots"
         self.log_file = run_dir / "logs.jsonl"
+        self.step_count = 0
 
         # Create directories
         self.run_dir.mkdir(parents=True, exist_ok=True)
@@ -37,48 +40,61 @@ class RunLogger:
         result: Any,
         success: bool = True,
     ) -> None:
-        """Log a tool call in JSONL format."""
-        # Create compact result summary
+        """Log a tool call with clean formatting."""
+        self.step_count += 1
+
+        # Create result summary
         result_summary = self._summarize_result(result)
 
+        # Write to file (detailed)
         entry = {
             "timestamp": datetime.now().isoformat(),
+            "step": self.step_count,
             "tool": tool,
             "args": args,
-            "result": result_summary,
+            "result": result if isinstance(result, (dict, list, str, int, float, bool)) else str(result),
             "success": success,
         }
-
-        # Write to file
         json_line = json.dumps(entry, ensure_ascii=False)
         self._log_handle.write(json_line + "\n")
         self._log_handle.flush()
 
-        # Print to console
-        self._print_tool_call(entry)
+        # Print to console (clean format)
+        self._print_tool_call(tool, args, result_summary, success)
 
     def log_agent_thought(self, thought: str) -> None:
-        """Log agent reasoning."""
-        console.print(f"[dim cyan]Agent:[/dim cyan] {thought}")
+        """Log agent reasoning/thinking."""
+        # Clean up the thought
+        thought = thought.strip()
+        if not thought:
+            return
+
+        # Truncate long thoughts
+        if len(thought) > 300:
+            thought = thought[:297] + "..."
+
+        console.print(f"\n[bold cyan]🤖 Agent:[/bold cyan] {thought}")
 
     def log_subagent(self, name: str, message: str) -> None:
         """Log sub-agent activity."""
-        console.print(f"[dim magenta]{name} Sub-agent:[/dim magenta] {message}")
+        console.print(f"  [dim magenta]↳ {name}:[/dim magenta] {message}")
 
     def log_security_check(self, action: str, reason: str) -> None:
-        """Log security check."""
+        """Log security check requiring user confirmation."""
+        console.print()
         console.print(
             Panel(
-                f"[bold red]Security Check Required[/bold red]\n\n"
-                f"Action: {action}\n"
-                f"Reason: {reason}",
-                border_style="red",
+                f"[bold yellow]⚠️  Security Check Required[/bold yellow]\n\n"
+                f"[bold]Action:[/bold] {action}\n"
+                f"[bold]Reason:[/bold] {reason}",
+                border_style="yellow",
+                title="[bold]Confirmation Needed[/bold]",
             )
         )
 
     def log_error(self, error: str) -> None:
         """Log an error."""
-        console.print(f"[bold red]Error:[/bold red] {error}")
+        console.print(f"\n[bold red]❌ Error:[/bold red] {error}")
         entry = {
             "timestamp": datetime.now().isoformat(),
             "type": "error",
@@ -89,14 +105,37 @@ class RunLogger:
 
     def log_final_report(self, report: dict[str, Any]) -> None:
         """Log the final execution report."""
-        console.print("\n")
+        status = report.get("status", "unknown")
+        steps = report.get("steps", 0)
+        summary = report.get("summary", "N/A")
+
+        # Choose style based on status
+        if status == "done":
+            icon = "✅"
+            title = "Task Completed"
+            border_style = "green"
+        elif status == "failed":
+            icon = "❌"
+            title = "Task Failed"
+            border_style = "red"
+        elif status == "need_user_input":
+            icon = "⏸️"
+            title = "Waiting for User"
+            border_style = "yellow"
+        else:
+            icon = "ℹ️"
+            title = "Execution Finished"
+            border_style = "blue"
+
+        console.print()
         console.print(
             Panel(
-                f"[bold green]Execution Complete[/bold green]\n\n"
-                f"Status: {report.get('status', 'unknown')}\n"
-                f"Steps: {report.get('steps', 0)}\n"
-                f"Summary: {report.get('summary', 'N/A')}",
-                border_style="green",
+                f"[bold]{icon} {title}[/bold]\n\n"
+                f"[bold]Status:[/bold] {status}\n"
+                f"[bold]Steps:[/bold] {steps}\n\n"
+                f"[bold]Summary:[/bold]\n{summary}",
+                border_style=border_style,
+                title=f"[bold]{title}[/bold]",
             )
         )
 
@@ -108,15 +147,12 @@ class RunLogger:
         self._log_handle.write(json.dumps(entry, ensure_ascii=False) + "\n")
         self._log_handle.flush()
 
-    def _summarize_result(self, result: Any, max_len: int = 200) -> str:
+    def _summarize_result(self, result: Any, max_len: int = 100) -> str:
         """Create a compact summary of a result."""
-        import os
-        debug = os.environ.get("DEBUG_SELECTORS", "0") == "1"
-
         if result is None:
             return "null"
         if isinstance(result, bool):
-            return str(result).lower()
+            return "✓" if result else "✗"
         if isinstance(result, (int, float)):
             return str(result)
         if isinstance(result, str):
@@ -124,43 +160,82 @@ class RunLogger:
                 return result[:max_len] + "..."
             return result
         if isinstance(result, dict):
-            # For candidates, show count AND first selector for debugging
+            # Handle common result patterns
+            if "success" in result:
+                if result.get("success"):
+                    if "url" in result:
+                        return f"✓ → {result['url']}"
+                    if "typed" in result:
+                        return f"✓ typed '{result['typed']}'"
+                    if "clicked" in result:
+                        return f"✓ clicked"
+                    if "pressed" in result:
+                        return f"✓ pressed {result['pressed']}"
+                    if "scrolled" in result:
+                        return f"✓ {result['scrolled']}"
+                    return "✓"
+                else:
+                    return f"✗ {result.get('error', 'failed')[:50]}"
+
+            if "error" in result:
+                error = result["error"]
+                if "Timeout" in error:
+                    return "✗ timeout"
+                return f"✗ {error[:50]}"
+
             if "candidates" in result:
-                count = len(result['candidates'])
-                if count > 0 and result['candidates']:
-                    first_candidate = result['candidates'][0]
-                    if debug:
-                        print(f"  [DEBUG LOG] first_candidate keys: {list(first_candidate.keys())}")
-                        print(f"  [DEBUG LOG] first_candidate: {first_candidate}")
-                    first_selector = first_candidate.get('selector', 'NO_SELECTOR')
-                    first_text = first_candidate.get('text', '')[:30]
-                    if debug:
-                        print(f"  [DEBUG LOG] first_selector = {repr(first_selector)}")
-                        print(f"  [DEBUG LOG] first_text = {repr(first_text)}")
-                    summary = f"{count} candidates (first: selector='{first_selector}', text='{first_text}')"
-                    if debug:
-                        print(f"  [DEBUG LOG] returning: {repr(summary)}")
-                    return summary
-                return f"{count} candidates found"
-            if "path" in result:
-                return f"path: {result['path']}"
+                count = len(result["candidates"])
+                if count > 0:
+                    first = result["candidates"][0]
+                    text = first.get("text", "")[:30] or first.get("selector", "")[:30]
+                    return f"found {count} elements ('{text}'...)"
+                return "no elements found"
+
+            if "elements" in result:
+                return f"found {len(result['elements'])} elements"
+
             return json.dumps(result, ensure_ascii=False)[:max_len]
         if isinstance(result, list):
             return f"[{len(result)} items]"
         return str(result)[:max_len]
 
-    def _print_tool_call(self, entry: dict[str, Any]) -> None:
-        """Print tool call to console."""
-        status = "[green]OK[/green]" if entry.get("success", True) else "[red]FAIL[/red]"
+    def _print_tool_call(self, tool: str, args: dict[str, Any], result: str, success: bool) -> None:
+        """Print tool call in clean format."""
+        # Format args nicely
+        args_parts = []
+        for key, value in args.items():
+            if isinstance(value, str):
+                # Truncate long strings
+                if len(value) > 40:
+                    value = value[:37] + "..."
+                args_parts.append(f'{key}="{value}"')
+            else:
+                args_parts.append(f"{key}={value}")
+        args_str = ", ".join(args_parts)
 
-        # Format args compactly
-        args_str = json.dumps(entry["args"], ensure_ascii=False)
-        if len(args_str) > 80:
-            args_str = args_str[:77] + "..."
+        # Choose icon based on tool type
+        tool_icons = {
+            "navigate_to_url": "🌐",
+            "click": "👆",
+            "type_text": "⌨️",
+            "press": "⏎",
+            "scroll": "📜",
+            "query_dom": "🔍",
+            "get_all_elements": "📋",
+            "wait": "⏳",
+            "hover": "👆",
+            "back": "⬅️",
+            "take_screenshot": "📸",
+            "close_popups": "❌",
+            "get_current_url": "🔗",
+        }
+        icon = tool_icons.get(tool, "🔧")
 
-        console.print(
-            f"[blue]{entry['tool']}[/blue]({args_str}) -> {entry['result']} {status}"
-        )
+        # Status indicator
+        status = "[green]✓[/green]" if success else "[red]✗[/red]"
+
+        # Print formatted line
+        console.print(f"  {icon} [blue]{tool}[/blue]({args_str}) {status} {result}")
 
 
 def create_run_logger() -> RunLogger:
@@ -174,12 +249,26 @@ def create_run_logger() -> RunLogger:
 
 def print_welcome() -> None:
     """Print welcome message."""
+    console.print()
     console.print(
         Panel(
-            "[bold]AIgent - Autonomous Browser Agent[/bold]\n"
+            "[bold cyan]🤖 AIgent - Autonomous Browser Agent[/bold cyan]\n\n"
             "Type your task and press Enter. Type 'quit' to exit.\n"
-            "The agent will ask for confirmation before destructive actions.",
+            "The agent will ask for confirmation before sensitive actions.",
+            border_style="cyan",
+            title="[bold]Welcome[/bold]",
+        )
+    )
+    console.print()
+
+
+def print_task_start(task: str) -> None:
+    """Print task start message."""
+    console.print(
+        Panel(
+            f"[bold]{task}[/bold]",
             border_style="blue",
+            title="[bold]📋 New Task[/bold]",
         )
     )
 

@@ -11,6 +11,7 @@ from src.app.logging import (
     create_run_logger,
     get_user_input,
     print_welcome,
+    print_task_start,
 )
 from src.browser.controller import BrowserController
 from src.llm.base import LLMProvider
@@ -80,7 +81,7 @@ async def run_agent_loop(
             continue
 
         # Execute task
-        console.print(f"\n[bold]Executing task:[/bold] {task}\n")
+        print_task_start(task)
 
         try:
             result = await orchestrator.execute_task(task)

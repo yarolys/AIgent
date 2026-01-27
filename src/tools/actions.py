@@ -80,10 +80,6 @@ def register_action_tools(browser: BrowserController) -> None:
         required=["selector", "text"],
     )
     async def type_text(selector: str, text: str, clear: bool = True) -> dict[str, Any]:
-        import os
-        if os.environ.get("DEBUG_SELECTORS", "0") == "1":
-            print(f"  [DEBUG] type_text called with selector={repr(selector)}")
-
         if not selector or not selector.strip():
             return {
                 "success": False,

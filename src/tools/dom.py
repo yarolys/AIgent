@@ -46,23 +46,11 @@ def register_dom_tools(browser: BrowserController) -> None:
 
         elements = await browser.query_interactive_elements(query, limit=limit)
 
-        # Debug: print raw elements from JavaScript
-        if DEBUG_SELECTORS:
-            print(f"\n[DEBUG] query_dom('{query}') - Raw elements from JavaScript:")
-            for i, elem in enumerate(elements):
-                print(f"  [{i}] tag={elem.get('tag')}, selector={elem.get('selector')}")
-                print(f"       cssPath={elem.get('cssPath')}")
-                print(f"       ariaLabel={elem.get('ariaLabel')}, placeholder={elem.get('placeholder')}")
-                print(f"       text={elem.get('text', '')[:50]}")
-
         # Format for LLM consumption
         candidates = []
         for i, elem in enumerate(elements):
             # Ensure we have a valid selector
             selector = elem.get("selector", "")
-
-            if DEBUG_SELECTORS:
-                print(f"  [DEBUG] elem.get('selector') = {repr(selector)}, type={type(selector).__name__}")
 
             # Multiple fallback attempts if selector is invalid
             if not selector or selector == "body" or selector.startswith("POSITION_FALLBACK"):
@@ -80,7 +68,6 @@ def register_dom_tools(browser: BrowserController) -> None:
                 elif elem.get("cssPath"):
                     selector = elem.get("cssPath", "")
                 elif elem.get("tag"):
-                    # For inputs, try to make more specific
                     tag = elem.get("tag", "").lower()
                     if tag == "input":
                         input_type = elem.get("attributes", {}).get("type", "text")
@@ -90,22 +77,14 @@ def register_dom_tools(browser: BrowserController) -> None:
 
             # Skip candidates without valid selector
             if not selector or selector == "body":
-                if DEBUG_SELECTORS:
-                    print(f"  [DEBUG] Skipping element {i} - no valid selector")
                 continue
-
-            if DEBUG_SELECTORS:
-                print(f"  [DEBUG] Element {i} final selector: {repr(selector)}")
 
             candidate = {
                 "id": i,
                 "role": elem.get("role", "unknown"),
                 "text": elem.get("text", "")[:100],
-                "selector": selector,  # THIS IS THE VALUE TO USE IN click() or type_text()
+                "selector": selector,
             }
-
-            if DEBUG_SELECTORS:
-                print(f"  [DEBUG] Created candidate: selector={repr(candidate['selector'])}")
 
             # Add useful identifying info
             if elem.get("ariaLabel"):
@@ -127,12 +106,6 @@ def register_dom_tools(browser: BrowserController) -> None:
         usage_hint = ""
         if candidates:
             usage_hint = f"Use click(selector=\"{candidates[0]['selector']}\") or type_text(selector=\"{candidates[0]['selector']}\", text=\"...\")"
-
-        # Debug: show final candidates before return
-        if DEBUG_SELECTORS and candidates:
-            print(f"  [DEBUG] Final candidates list:")
-            for c in candidates:
-                print(f"    id={c['id']}, selector='{c.get('selector', 'MISSING')}', text='{c.get('text', '')[:30]}'")
 
         return {
             "candidates": candidates,
@@ -158,11 +131,7 @@ def register_dom_tools(browser: BrowserController) -> None:
     )
     async def get_all_elements(limit: int = 30) -> dict[str, Any]:
         """Get all interactive elements without text filtering."""
-        # Use empty query to get all elements
         elements = await browser.query_interactive_elements("", limit=limit)
-
-        if DEBUG_SELECTORS:
-            print(f"\n[DEBUG] get_all_elements() - Found {len(elements)} elements")
 
         # Format for display
         items = []
@@ -187,9 +156,6 @@ def register_dom_tools(browser: BrowserController) -> None:
                 "identifier": identifier[:50] if identifier else "N/A",
                 "selector": selector,
             })
-
-            if DEBUG_SELECTORS:
-                print(f"  [{i}] <{tag}> '{text[:40]}' selector={selector[:50]}")
 
         return {
             "elements": items,
