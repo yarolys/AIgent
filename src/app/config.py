@@ -45,6 +45,9 @@ class Config:
     MAX_OBSERVATION_LENGTH: int = int(os.getenv("MAX_OBSERVATION_LENGTH", "2000"))
     MAX_DOM_TEXT_LENGTH: int = int(os.getenv("MAX_DOM_TEXT_LENGTH", "200"))
 
+    # Language Settings (ru/en)
+    LANGUAGE: str = os.getenv("LANGUAGE", "ru")
+
     @classmethod
     def get_api_key(cls) -> str:
         """Get the API key for the configured provider."""

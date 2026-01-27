@@ -11,6 +11,7 @@ from src.agent.policies import security_policy
 from src.agent.prompts import SYSTEM_PROMPT, create_task_prompt
 from src.agent.subagents.dom_analyst import DOMAnalyst
 from src.app.config import config
+from src.app.i18n import t
 from src.app.logging import RunLogger, get_user_confirmation
 from src.browser.controller import BrowserController
 from src.browser.observation import Observer
@@ -84,7 +85,7 @@ class Orchestrator:
         self._should_stop = False
         self.error_handler.reset()
 
-        self.logger.log_agent_thought(f"Starting task: {task}")
+        self.logger.log_agent_thought(t("starting_task", task=task))
 
         step_count = 0
 
@@ -93,6 +94,8 @@ class Orchestrator:
 
             try:
                 # 1. Observe current state
+                self.logger.log_orchestrator(t("orch_step", step=step_count))
+                self.logger.log_orchestrator(t("orch_observing"))
                 observation = await self.observer.observe()
                 observation_text = observation.to_prompt_text()
 
@@ -113,6 +116,7 @@ class Orchestrator:
                     })
 
                 # 4. Get LLM decision
+                self.logger.log_orchestrator(t("orch_thinking"))
                 response = await self._get_llm_response()
 
                 if not response:
@@ -194,7 +198,7 @@ class Orchestrator:
 
             if "DONE:" in content_upper:
                 summary = response.content.split("DONE:", 1)[-1].strip()
-                self.logger.log_agent_thought(f"Task complete: {summary}")
+                self.logger.log_agent_thought(t("task_complete", summary=summary))
                 return ExecutionResult(
                     status=AgentStatus.DONE,
                     summary=summary,
@@ -204,7 +208,7 @@ class Orchestrator:
 
             if "NEED_USER_INPUT:" in content_upper:
                 reason = response.content.split("NEED_USER_INPUT:", 1)[-1].strip()
-                self.logger.log_agent_thought(f"Needs user input: {reason}")
+                self.logger.log_agent_thought(t("needs_user_input", reason=reason))
                 return ExecutionResult(
                     status=AgentStatus.NEED_USER_INPUT,
                     summary=reason,
@@ -214,7 +218,7 @@ class Orchestrator:
 
             if "FAILED:" in content_upper:
                 reason = response.content.split("FAILED:", 1)[-1].strip()
-                self.logger.log_agent_thought(f"Task failed: {reason}")
+                self.logger.log_agent_thought(t("task_failed", reason=reason))
                 return ExecutionResult(
                     status=AgentStatus.FAILED,
                     summary=reason,
@@ -277,8 +281,8 @@ class Orchestrator:
                 classification.reason,
             )
 
-            if not get_user_confirmation("Proceed with this action?"):
-                self.logger.log_agent_thought("Action cancelled by user")
+            if not get_user_confirmation(t("confirm_prompt")):
+                self.logger.log_agent_thought(t("action_cancelled"))
                 return self.llm.format_tool_result(
                     tool_id,
                     {"error": "Action cancelled by user", "blocked": True},
@@ -340,7 +344,7 @@ class Orchestrator:
 
             if recovery.strategy != RecoveryStrategy.GIVE_UP and recovery.tool_name:
                 # Execute recovery action
-                self.logger.log_agent_thought(f"Recovery: {recovery.description}")
+                self.logger.log_agent_thought(t("recovery_attempt", description=recovery.description))
                 try:
                     recovery_tool = registry.get_tool(recovery.tool_name)
                     if recovery_tool and recovery.tool_args:

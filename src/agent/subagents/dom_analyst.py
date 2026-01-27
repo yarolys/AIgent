@@ -2,6 +2,7 @@
 
 from typing import Any
 
+from src.app.i18n import t
 from src.app.logging import RunLogger
 from src.llm.base import LLMProvider
 
@@ -33,15 +34,15 @@ class DOMAnalyst:
         Returns:
             dict with 'selected_id', 'selector', and 'confidence'
         """
-        self.logger.log_subagent("DOM", f"Processing query: {query}")
+        self.logger.log_subagent("DOM", t("dom_processing_query", query=query))
 
         if not candidates:
-            self.logger.log_subagent("DOM", "No candidates to analyze")
+            self.logger.log_subagent("DOM", t("dom_no_candidates"))
             return {
                 "selected_id": None,
                 "selector": None,
                 "confidence": 0.0,
-                "reason": "No candidates found",
+                "reason": t("dom_no_candidates"),
             }
 
         # Use heuristic scoring for simple cases
@@ -52,7 +53,7 @@ class DOMAnalyst:
             best = scored[0]
             self.logger.log_subagent(
                 "DOM",
-                f"High confidence match: [{best['id']}] {best.get('text', '')[:30]}",
+                t("dom_high_confidence", id=best["id"], text=best.get("text", "")[:30]),
             )
             return {
                 "selected_id": best["id"],
@@ -63,7 +64,7 @@ class DOMAnalyst:
 
         # For ambiguous cases, use LLM
         if len(scored) > 1 and scored[0]["score"] < 0.5:
-            self.logger.log_subagent("DOM", "Low confidence - consulting LLM")
+            self.logger.log_subagent("DOM", t("dom_low_confidence"))
             return await self._llm_select(query, candidates, context)
 
         # Return best heuristic match
@@ -71,7 +72,7 @@ class DOMAnalyst:
             best = scored[0]
             self.logger.log_subagent(
                 "DOM",
-                f"Selected: [{best['id']}] score={best['score']:.2f}",
+                t("dom_selected", id=best["id"], score=best["score"]),
             )
             return {
                 "selected_id": best["id"],
@@ -229,6 +230,7 @@ Reply with just the number (e.g., "0" or "2") or "none" if no match."""
         return {
             "selected_id": None,
             "selector": None,
+
             "confidence": 0.0,
             "reason": "Analysis failed",
         }
