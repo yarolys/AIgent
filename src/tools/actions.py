@@ -42,7 +42,7 @@ def register_action_tools(browser: BrowserController) -> None:
         parameters={
             "selector": {
                 "type": "string",
-                "description": "The EXACT selector value from query_dom candidate (e.g., '[aria-label=\"Поиск\"]')",
+                "description": "The EXACT selector value from query_dom candidate (e.g., '[aria-label=\"Search\"]')",
             },
         },
         required=["selector"],
@@ -66,7 +66,7 @@ def register_action_tools(browser: BrowserController) -> None:
         parameters={
             "selector": {
                 "type": "string",
-                "description": "The EXACT selector value from query_dom candidate (e.g., '[placeholder=\"Поиск\"]')",
+                "description": "The EXACT selector value from query_dom candidate (e.g., '[placeholder=\"Search\"]')",
             },
             "text": {
                 "type": "string",

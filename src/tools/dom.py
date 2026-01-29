@@ -30,7 +30,7 @@ def register_dom_tools(browser: BrowserController) -> None:
                 "type": "string",
                 "description": (
                     "Search query to match elements. Examples: 'search', 'login', 'submit', "
-                    "'email input', 'add to cart', 'В корзину'. Leave empty to get all interactive elements."
+                    "'email input', 'add to cart', 'submit button'. Leave empty to get all interactive elements."
                 ),
             },
             "limit": {

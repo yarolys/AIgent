@@ -34,7 +34,7 @@ class OpenAIProvider(LLMProvider):
             model=self.model,
             messages=full_messages,
             tools=openai_tools if openai_tools else None,
-            max_tokens=4096,
+            max_completion_tokens=4096,
         )
 
         choice = response.choices[0]

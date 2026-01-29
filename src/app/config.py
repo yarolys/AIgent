@@ -45,8 +45,12 @@ class Config:
     MAX_OBSERVATION_LENGTH: int = int(os.getenv("MAX_OBSERVATION_LENGTH", "2000"))
     MAX_DOM_TEXT_LENGTH: int = int(os.getenv("MAX_DOM_TEXT_LENGTH", "200"))
 
-    # Language Settings (ru/en)
-    LANGUAGE: str = os.getenv("LANGUAGE", "ru")
+    # Language Settings
+    LANGUAGE: str = os.getenv("LANGUAGE", "auto")
+
+    # Browser locale/timezone (empty = auto-detect)
+    BROWSER_LOCALE: str = os.getenv("BROWSER_LOCALE", "")
+    BROWSER_TIMEZONE: str = os.getenv("BROWSER_TIMEZONE", "")
 
     @classmethod
     def get_api_key(cls) -> str:

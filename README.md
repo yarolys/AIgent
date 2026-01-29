@@ -92,7 +92,7 @@ The browser will open (non-headless by default). You'll see a prompt where you c
 Search for "python tutorials" on Google and click the first result
 
 # E-commerce (stops before payment)
-Open Яндекс Лавку, find hot dogs, add one to cart, but don't checkout
+Open an online store, find headphones, add to cart, but don't checkout
 
 # Form filling
 Find the contact form and fill in: name "John", email "john@test.com"
@@ -269,7 +269,7 @@ grep '"success":false' runs/*/logs.jsonl
 
 1. Start the agent: `python -m src.app.cli`
 2. Start screen recording (OBS, QuickTime, etc.)
-3. Enter task: `Открой google.com, найди поиск, введи "AI agent" и нажми поиск`
+3. Enter task: `Go to google.com, find the search box, type "AI agent" and hit search`
 4. Watch the agent work
 5. Stop recording
 

@@ -25,33 +25,32 @@ class ActionClassification:
 # Keywords indicating destructive actions (case-insensitive)
 DESTRUCTIVE_KEYWORDS = {
     # Payment/Purchase
-    "pay", "payment", "оплат", "купить", "buy", "purchase", "checkout",
-    "order", "заказ", "подтвердить заказ", "confirm order", "place order",
-    "оформить", "proceed to payment",
+    "pay", "payment", "buy", "purchase", "checkout",
+    "order", "confirm order", "place order", "proceed to payment",
 
     # Delete/Remove
-    "delete", "удалить", "remove", "убрать", "clear", "очистить",
-    "trash", "корзина", "spam", "спам",
+    "delete", "remove", "clear",
+    "trash", "spam",
 
     # Send/Submit
-    "send", "отправить", "submit", "опубликовать", "publish", "post",
+    "send", "submit", "publish", "post",
 
     # Account actions
-    "unsubscribe", "отписаться", "cancel subscription", "отменить подписку",
-    "logout", "выйти", "sign out",
+    "unsubscribe", "cancel subscription",
+    "logout", "sign out",
 }
 
 # Keywords indicating input fields that need care
 SENSITIVE_INPUT_KEYWORDS = {
-    "card", "карт", "cvv", "cvc", "credit", "debit",
-    "password", "пароль", "pin", "пин",
+    "card", "cvv", "cvc", "credit", "debit",
+    "password", "pin",
     "ssn", "social security",
 }
 
 # URL patterns for payment pages
 PAYMENT_URL_PATTERNS = [
     "checkout", "payment", "pay", "order",
-    "cart", "basket", "корзина",
+    "cart", "basket",
 ]
 
 
@@ -129,7 +128,7 @@ class SecurityPolicy:
         for pattern in PAYMENT_URL_PATTERNS:
             if pattern in url_lower:
                 # On payment page, be more careful
-                risky_keywords = ["submit", "confirm", "оформить", "заказ", "order"]
+                risky_keywords = ["submit", "confirm", "order"]
                 if any(kw in selector for kw in risky_keywords):
                     return ActionClassification(
                         risk=ActionRisk.DESTRUCTIVE,

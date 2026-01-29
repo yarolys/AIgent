@@ -180,7 +180,7 @@ EN_TRANSLATIONS = {
 }
 
 # Current language
-_current_lang = "ru"
+_current_lang = "en"
 _translations = {
     "ru": RU_TRANSLATIONS,
     "en": EN_TRANSLATIONS,
@@ -188,10 +188,12 @@ _translations = {
 
 
 def set_language(lang: str) -> None:
-    """Set the current language (ru/en)."""
+    """Set the current language (ru/en/auto). Auto defaults to en."""
     global _current_lang
     if lang in _translations:
         _current_lang = lang
+    elif lang == "auto":
+        _current_lang = "en"
 
 
 def get_language() -> str:

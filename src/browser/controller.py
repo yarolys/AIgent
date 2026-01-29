@@ -42,8 +42,8 @@ class BrowserController:
             user_data_dir=str(config.USER_DATA_DIR),
             headless=config.HEADLESS,
             viewport={"width": config.VIEWPORT_WIDTH, "height": config.VIEWPORT_HEIGHT},
-            locale="ru-RU",  # Can be configured
-            timezone_id="Europe/Moscow",  # Can be configured
+            **({"locale": config.BROWSER_LOCALE} if config.BROWSER_LOCALE else {}),
+            **({"timezone_id": config.BROWSER_TIMEZONE} if config.BROWSER_TIMEZONE else {}),
             args=[
                 "--disable-blink-features=AutomationControlled",
             ],
@@ -177,19 +177,6 @@ class BrowserController:
                 const { query, limit } = args;
                 const queryLower = query.toLowerCase();
 
-                // Transliteration map for common brand searches
-                const translitMap = {
-                    'milka': 'милка',
-                    'милка': 'milka',
-                    'oreo': 'орео',
-                    'snickers': 'сникерс',
-                    'mars': 'марс',
-                    'twix': 'твикс',
-                    'bounty': 'баунти',
-                    'kitkat': 'киткат',
-                    'nestle': 'нестле',
-                };
-                const queryAlt = translitMap[queryLower] || '';
 
                 // Selectors for interactive elements (including product cards)
                 const interactiveSelectors = [
@@ -227,7 +214,6 @@ class BrowserController:
                     selectorCounts: {},
                     textMatches: [],
                     query: queryLower,
-                    queryAlt: queryAlt,
                 };
                 for (const sel of interactiveSelectors) {
                     const count = document.querySelectorAll(sel).length;
@@ -239,14 +225,13 @@ class BrowserController:
                     let matchCount = 0;
                     for (const el of allElements) {
                         const text = (el.innerText || '').toLowerCase();
-                        if (text.includes(queryLower) || (queryAlt && text.includes(queryAlt))) {
+                        if (text.includes(queryLower)) {
                             matchCount++;
                             if (debugInfo.textMatches.length < 5) {
                                 debugInfo.textMatches.push({
                                     tag: el.tagName,
                                     text: text.slice(0, 50),
                                     hasQuery: text.includes(queryLower),
-                                    hasAlt: queryAlt ? text.includes(queryAlt) : false,
                                 });
                             }
                         }
@@ -277,19 +262,15 @@ class BrowserController:
                         innerText, ariaLabel, placeholder, title, name, value, alt
                     ].join(' ').toLowerCase();
 
-                    // Score match (check both original query and transliteration)
+                    // Score match
                     let score = 0;
                     if (queryLower) {
-                        const matchesQuery = searchText.includes(queryLower);
-                        const matchesAlt = queryAlt && searchText.includes(queryAlt);
-
-                        if (matchesQuery || matchesAlt) {
+                        if (searchText.includes(queryLower)) {
                             score = 1;
                             // Boost exact matches
                             const textLower = innerText.toLowerCase();
                             const ariaLower = ariaLabel.toLowerCase();
-                            if (textLower === queryLower || ariaLower === queryLower ||
-                                textLower === queryAlt || ariaLower === queryAlt) {
+                            if (textLower === queryLower || ariaLower === queryLower) {
                                 score = 2;
                             }
                         }
@@ -402,7 +383,7 @@ class BrowserController:
             import os
             if os.environ.get("DEBUG_SELECTORS", "0") == "1":
                 print(f"  [JS DEBUG] Total elements: {debug_info.get('totalElements', '?')}")
-                print(f"  [JS DEBUG] Query: '{debug_info.get('query', '')}', Alt: '{debug_info.get('queryAlt', '')}'")
+                print(f"  [JS DEBUG] Query: '{debug_info.get('query', '')}'")
                 print(f"  [JS DEBUG] Text match count: {debug_info.get('textMatchCount', '?')}")
                 if debug_info.get('textMatches'):
                     print(f"  [JS DEBUG] Sample matches:")
@@ -429,7 +410,7 @@ class BrowserController:
         for candidate in close_candidates:
             # Check if it looks like a close button
             text_lower = (candidate.get("text", "") + candidate.get("ariaLabel", "")).lower()
-            close_keywords = ["close", "dismiss", "cancel", "x", "закрыть", "отмена"]
+            close_keywords = ["close", "dismiss", "cancel", "x", "×", "✕", "ok", "accept", "got it", "no thanks"]
             if any(kw in text_lower for kw in close_keywords):
                 try:
                     await self.page.click(candidate["selector"], timeout=2000)
